@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .input-area {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .messages {
+            margin-top: 30px;
+        }
+
+        .message-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .message-name {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .message-time {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .message-content {
+            color: #333;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .delete-btn {
+            width: auto;
+            padding: 5px 15px;
+            background: #ff4757;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .delete-btn:hover {
+            background: #ff3838;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💬 留言板</h1>
+        
+        <div class="input-area">
+            <div class="input-group">
+                <label for="nameInput">昵称：</label>
+                <input type="text" id="nameInput" placeholder="请输入您的昵称" maxlength="20">
+            </div>
+            
+            <div class="input-group">
+                <label for="messageInput">留言内容：</label>
+                <textarea id="messageInput" placeholder="请输入留言内容..." maxlength="500"></textarea>
+            </div>
+            
+            <button onclick="addMessage()">发布留言</button>
+        </div>
+        
+        <div class="messages" id="messageList">
+            <div class="empty-message">暂无留言，快来发布第一条留言吧！</div>
+        </div>
+    </div>
+
+    <script>
+        let messages = [];
+
+        function addMessage() {
+            const nameInput = document.getElementById('nameInput');
+            const messageInput = document.getElementById('messageInput');
+            
+            const name = nameInput.value.trim();
+            const content = messageInput.value.trim();
+            
+            if (!name) {
+                alert('请输入昵称！');
+                return;
+            }
+            
+            if (!content) {
+                alert('请输入留言内容！');
+                return;
+            }
+            
+            const message = {
+                id: Date.now(),
+                name: name,
+                content: content,
+                time: new Date().toLocaleString('zh-CN')
+            };
+            
+            messages.unshift(message);
+            
+            nameInput.value = '';
+            messageInput.value = '';
+            
+            renderMessages();
+        }
+
+        function deleteMessage(id) {
+            if (confirm('确定要删除这条留言吗？')) {
+                messages = messages.filter(msg => msg.id !== id);
+                renderMessages();
+            }
+        }
+
+        function renderMessages() {
+            const messageList = document.getElementById('messageList');
+            
+            if (messages.length === 0) {
+                messageList.innerHTML = '<div class="empty-message">暂无留言，快来发布第一条留言吧！</div>';
+                return;
+            }
+            
+            messageList.innerHTML = messages.map(msg => `
+                <div class="message-item">
+                    <div class="message-header">
+                        <span class="message-name">${escapeHtml(msg.name)}</span>
+                        <span class="message-time">${msg.time}</span>
+                    </div>
+                    <div class="message-content">${escapeHtml(msg.content)}</div>
+                    <button class="delete-btn" onclick="deleteMessage(${msg.id})">删除</button>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.getElementById('messageInput').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                addMessage();
+            }
+        });
+    </script>
+</body>
+</html>
